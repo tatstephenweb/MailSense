@@ -13,7 +13,7 @@ def home():
 @app.route('/login')
 def login():
     redirect_uri = url_for('auth', _external=True)
-    return oauth.google.authorize_redirect(redirect_uri)
+    return oauth.google.authorize_redirect(redirect_uri, access_type='offline', prompt='consent')
 
 @app.route('/auth/callback')
 def auth():
@@ -25,8 +25,10 @@ def auth():
     name = token['userinfo']['name']
     picture_url = token['userinfo']['picture']
     access_token = token['access_token']
-    refresh_token = token.get('refresh_token')
+    refresh_token = token.get('refresh_token')  # Use .get() to avoid KeyError if refresh_token is not present
     token_expiry = token['expires_at']
+
+    print(google_sub, email, name, picture_url, access_token, refresh_token, token_expiry)
 
     # Insert or update user in the database
     user_id = db_handler.insert_user(
@@ -40,6 +42,7 @@ def auth():
 @app.route('/logout')
 def logout():
     session.pop('user', None)
+    session.pop('user_id', None)
     return redirect('/')  # Redirect to the dashboard after logout
 
 
@@ -114,7 +117,8 @@ def get_email_detail(id):
         'emails': result
     })
 
+
 if __name__ == "__main__":
     db_handler.create_users_table()  # Ensure the users table is created before running the app
     db_handler.create_emails_table()  # Ensure the emails table is created before running the app
-    app.run(debug=True)
+    app.run()
