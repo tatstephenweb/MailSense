@@ -36,10 +36,6 @@ def generate_new_access_token(user_id):
     refresh_token = tokens[1]
     token_expiry = tokens[2]
 
-    print(access_token)
-    print(refresh_token)
-    print(token_expiry)
-
     creds = Credentials(
         token=access_token,
         refresh_token=refresh_token,
@@ -71,5 +67,3 @@ def generate_new_access_token(user_id):
 
     service = build("gmail", "v1", credentials=creds)
     return service
-
-print(generate_new_access_token(1))  # Test the function with a user_id of 1

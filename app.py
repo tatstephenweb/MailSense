@@ -38,7 +38,6 @@ def auth():
     session['user_id'] = user_id
     return redirect(url_for('dashboard'))
 
-
 @app.route('/logout')
 def logout():
     session.pop('user', None)

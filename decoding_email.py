@@ -1,5 +1,7 @@
 import base64
-
+from scheduler import generate_new_access_token
+import db_handler
+from classifier import classify_email
 #Function to decode body of the mail from base64 to plain understandable text
 
 def decode_email_body(payload):
@@ -51,5 +53,100 @@ simple_payload = {
     }
 }
 
-print("Simple:", decode_email_body(simple_payload))
-print("Multipart:", decode_email_body(multipart_payload))
+#this function will get the last history id of the user and store it in the database, this will be used to get the new emails from the user's mailbox
+def initialize_sync(user_id):
+    service = generate_new_access_token(user_id)  # returns the Gmail API service object
+    if not service:
+        return None
+
+    profile = service.users().getProfile(userId='me').execute()
+    current_history_id = profile['historyId']
+
+    conn = db_handler.get_connection("mailsense.db")
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE users SET last_history_id = ? WHERE id = ?",
+            (current_history_id, user_id)
+        )
+        conn.commit()
+        conn.close()
+
+    return current_history_id
+
+
+def poll_new_emails(user_id):
+    service = generate_new_access_token(user_id)
+    if not service:
+        return None
+
+    # Get the last saved historyId for this user
+    conn = db_handler.get_connection("mailsense.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT last_history_id FROM users WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+
+    if not row or not row[0]:
+        conn.close()
+        return None  # user hasn't been baselined yet — should call initialize_sync first
+
+    last_history_id = row[0]
+
+    #print(service.users().getProfile(userId='me').execute())
+
+    response = service.users().history().list(
+        userId = 'me',
+        startHistoryId = last_history_id,
+        historyTypes = ['messageAdded']
+    ).execute()
+
+    new_message_ids = []
+    for event in response.get('history', []):
+        for added in event.get('messagesAdded', []):
+            new_message_ids.append(added['message']['id'])
+
+    new_history_id = response.get('historyId', last_history_id)
+    cursor.execute(
+        "UPDATE users SET last_history_id = ? WHERE id = ?",
+        (new_history_id, user_id)
+    )
+    conn.commit()
+    conn.close()
+
+    return new_message_ids
+
+def fetch_and_decode_bodies(user_id, message_ids):
+    service = generate_new_access_token(user_id)
+    if not service:
+        return []
+
+    emails = []
+    for msg_id in message_ids:
+        message = service.users().messages().get(
+            userId='me',
+            id=msg_id,
+            format='full'
+        ).execute()
+
+        payload = message['payload']
+        body = decode_email_body(payload)
+
+        headers = payload.get('headers', [])
+        subject = next((h['value'] for h in headers if h['name'] == 'Subject'), '')
+        sender = next((h['value'] for h in headers if h['name'] == 'From'), '')
+
+        classification = classify_email(sender, subject, body)
+
+        emails.append({
+            #'message_id': msg_id,
+            'sender': sender,
+            'subject': subject,
+            'body': body,
+            'priority': classification['priority'],
+            'reason': classification['reason']
+        })
+
+    return emails
+
+fetch_body = fetch_and_decode_bodies(1, ['1a0aea0d5d60f3ae'])
+print(fetch_body)
