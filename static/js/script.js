@@ -4,6 +4,17 @@ function refreshPage() {
   location.reload();
 }
 
+function openDetailView() {
+    document.getElementById('list-view').classList.add('hidden');
+    document.getElementById('detail-view').classList.remove('hidden');
+    document.getElementById('detail-view').classList.add('flex');
+}
+
+function closeDetailView() {
+    document.getElementById('detail-view').classList.add('hidden');
+    document.getElementById('list-view').classList.remove('hidden');
+}
+
 // Function to fetch emails based on priority
 async function loadEmails(priority) {
     try {
@@ -32,6 +43,7 @@ async function showMailDetail(emailId) {
 
         console.log(data)
         renderDetail(data.emails[0])
+        openDetailView();
         //renderDetail(data.email);
     }
     catch (error) {
@@ -54,7 +66,7 @@ function renderEmails(emails) {
       
       const div = document.createElement('button');
         div.type = 'button';
-        div.className = `mail-row bg-blue w-full flex gap-4 border-b border-ink/10 px-2 md:px-3 py-2.5 text-left`;
+        div.className = `mail-row w-full flex gap-4 border-b border-ink/10 px-2 md:px-3 py-2.5 text-left`;
         
         //TO ADD CLICK FUNCTION TO THE BUTTON TO OPEN THE DETAILS OF THE MAIL
         div.addEventListener('click', () => {
@@ -62,21 +74,22 @@ function renderEmails(emails) {
         });
         
         // CREATE THE CONTENTS OF THE BUTTON MAIL LIST
+        
         div.innerHTML = `
-        <div class="avatar-email h-10 w-10 rounded-full bg-panelmuted flex items-center justify-center text-20px font-bold shrink-0">
-          ${firstLetter}
-        </div>
-        <div class="flex flex-col w-full">
-          <div class="min-w-0 truncate text-[14px] mail-row_sender">${email.sender}</div>
-          
-          <div class="flex w-full items-center justify-between bg-blue">
-            <span class="w-40 md:w-56 shrink-0 truncate text-[14px] mail-row_subject">${email.subject}</span>
-            <span class="mail-row_priority text-center">${email.priority}</span>
+          <div class="avatar-email h-10 w-10 rounded-full flex items-center justify-center text-20px font-bold shrink-0">
+            ${firstLetter}
           </div>
-          
-          <div class="text-blue truncate text-[12px] mail-row_snippet">${email.snippet}</div>
-        </div>
-        `;
+          <div class="flex flex-col w-full min-w-0 root">
+            <div class="min-w-0 truncate text-[14px] mail-row_sender">${email.sender}</div>
+            
+            <div class="flex w-full items-center justify-between gap-2 bg-blue">
+              <span class="truncate min-w-0 flex-1 text-[14px] mail-row_subject">${email.subject}</span>
+              <span class="mail-row_priority text-center shrink-0">${email.priority}</span>
+            </div>
+            
+            <div class="min-w-0 truncate text-[12px] mail-row_snippet">${email.snippet}</div>
+          </div>
+          `;
         let avatarDiv = div.querySelector('.avatar-email');
         if (colors[firstLetter]) {
             avatarDiv.style.backgroundColor = colors[firstLetter];
@@ -145,7 +158,7 @@ function renderDetail(email) {
             </div>
 
           </div>
-          <p class="text-[15px] leading-7 whitespace-pre-line">${email.snippet}</p>
+          <p class="text-[15px] leading-7 whitespace-pre-line break-words">${email.snippet}</p>
         </div>
       `
 
