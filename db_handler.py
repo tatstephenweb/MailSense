@@ -1,5 +1,6 @@
 from datetime import datetime
 import sqlite3 as sqlite
+from crypto import encrypt_text
 
 #Datebase creation with SQLite
 def get_connection(db_name):
@@ -82,7 +83,6 @@ def create_emails_table():
                 CREATE TABLE IF NOT EXISTS emails (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER NOT NULL,
-                    email_id TEXT NOT NULL UNIQUE,
                     subject TEXT,
                     sender TEXT,
                     snippet TEXT,
@@ -100,18 +100,27 @@ def create_emails_table():
             print(f"Error: {e}")
         conn.close()
 
-def insert_email(user_id, email_id, subject, sender, snippet, priority, status, deadline, received_at):
+def insert_email(user_id, subject, sender, snippet, priority, status):
+    
+    result = encrypt_text(sender, subject, snippet)
+    
     conn = get_connection("mailsense.db")
     if conn:
         cursor = conn.cursor()
         try:
             cursor.execute('''
-                INSERT INTO emails (user_id, email_id, subject, sender, snippet, priority, status, deadline, received_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (user_id, email_id, subject, sender, snippet, priority, status, deadline, received_at))
+                INSERT INTO emails (user_id, subject, sender, snippet, priority, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (user_id, result[1], result[0], result[2], priority, status))
             conn.commit()
-            print(f"Email {email_id} inserted successfully.")
+            print(f"Email inserted successfully.")
         except Exception as e:
             print(f"Error: {e}")
         conn.close()
-        
+
+if __name__ == "__main__":
+    from decoding_email import poll_new_emails, fetch_and_decode_bodies
+
+    classified_data = fetch_and_decode_bodies(1, poll_new_emails(1))
+    for cd in classified_data:
+        insert_email(1, cd["subject"], cd["sender"], cd["body"], cd["priority"], cd["reason"])

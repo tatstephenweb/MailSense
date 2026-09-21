@@ -5,6 +5,7 @@ import authenticate  # Import authentication module
 from authenticate import app, Flask, url_for, session, render_template, redirect, oauth
 import sqlite3 as sqlite
 import db_handler
+from crypto import decrypt_text
 
 @app.route("/")
 def home():
@@ -54,12 +55,14 @@ def dashboard():
 def get_emails():
     priority = request.args.get('priority', 'all')
 
-    query = "SELECT * FROM emails WHERE user_id = ? and status = 'active'"
-    params = (1,) #chnage 1 to session['user_id'] when user login is implemented
+    query = "SELECT * FROM emails WHERE user_id = ?"
+    params = (session['user_id'],)
 
     if priority != 'all':
         query += " AND priority = ?"
         params += (priority,)
+
+    query += " ORDER BY created_at DESC"
 
     conn = db_handler.get_connection("mailsense.db")
     if conn:
@@ -73,13 +76,14 @@ def get_emails():
         result.append({
             'id': email[0],
             'user_id': email[1],
-            'email_id': email[2],
-            'subject': email[3],
-            'sender': email[4],
-            'snippet': email[5],
-            'priority': email[6],
-            'status': email[7]
+            'subject': decrypt_text(email[2]),
+            'sender': decrypt_text(email[3]),
+            'snippet': decrypt_text(email[4]),
+            'priority': email[5],
+            'status': email[6],
+            'created_at': email[9]
         })
+    print(result)
 
     return jsonify({'priority': priority, 'emails': result})
 
@@ -103,13 +107,13 @@ def get_email_detail(id):
         result.append({
             'id': email[0],
             'user_id': email[1],
-            'email_id': email[2],
-            'subject': email[3],
-            'sender': email[4],
-            'snippet': email[5],
-            'priority': email[6],
-            'status': email[7],
-            'recieved_at': email[10]
+            #'email_id': email[2],
+            'subject': decrypt_text(email[2]),
+            'sender': decrypt_text(email[3]),
+            'snippet': decrypt_text(email[4]),
+            'priority': email[5],
+            'status': email[6],
+            'recieved_at': email[9]
         })
 
     return jsonify({

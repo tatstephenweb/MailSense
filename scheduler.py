@@ -66,4 +66,5 @@ def generate_new_access_token(user_id):
               # Print the new access token, refresh token, and expiry
 
     service = build("gmail", "v1", credentials=creds)
+    print('gnac reached here')
     return service
