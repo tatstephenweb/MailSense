@@ -80,7 +80,7 @@
       <div>
         <p class="px-3 mb-2 text-[11px] font-bold text-faint tracking-wide">SORT PRIORITY</p>
         <div class="space-y-1">
-          <button onclick="loadEmails('high')" class="priority-item w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
+          <button onclick="loadEmails('High')" class="priority-item w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 3v12" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
               <path d="M6 9l6-6 6 6" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -88,14 +88,14 @@
             </svg>
             High
           </button>
-          <button onclick="loadEmails('medium')" class="priority-item w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
+          <button onclick="loadEmails('Medium')" class="priority-item w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="3" y="11" width="18" height="2.5" rx="1.25" fill="#f59e0b"/>
     <circle cx="12" cy="19" r="1.5" fill="#f59e0b"/>
   </svg>
             Medium
           </button>
-          <button onclick="loadEmails('low')" class="priority-item w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
+          <button onclick="loadEmails('Low')" class="priority-item w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 21V9" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
             <path d="M6 15l6 6 6-6" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -163,7 +163,7 @@
 
     <section class="flex min-w-0 overflow-hidden">
       <!-- List view -->
-      <div id="list-view" class="flex-1 flex flex-col min-h-0 ">
+      <div id="list-view" class="flex-1 min-w-0 flex flex-col min-h-0 lg:flex">
         <div class="px-5 md:px-5 pt-4 pb-2 shrink-0 border-b border-ink/10 bg-firstgreen">
           <h1 id="list-title" class="text-[16px] font-bold text-sixthgreen">My Emails</h1>
           <h2 id="list-priority-title" class="text-[16px] text-uppercase font-bold">All</h2>
@@ -172,8 +172,11 @@
       </div>
 
       <!-- Detail view -->
-      <div id="detail-view" class=" flex-1 flex-col min-h-0 bg-red lg:flex hidden">
-        <div id="mail-detail" class="flex-1 overflow-y-auto custom-scroll px-6 md:px-10 pb-10"></div>
+      <div id="detail-view" class="flex-1 min-w-0 flex-col min-h-0 bg-red lg:flex hidden">
+        <div class="p-5">
+          <button id="back-to-list" onclick="closeDetailView()" class="lg:hidden text-[14px] font-medium bg-sixthgreen p-2 text-firstgreen">Back</button>
+        </div>
+        <div id="mail-detail" class="flex-1 min-w-0 overflow-y-auto custom-scroll px-6 md:px-10 pb-10"></div>
       </div>
     </section>
   </div>
