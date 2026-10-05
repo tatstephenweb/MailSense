@@ -6,28 +6,49 @@ load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-def test_groq_connection():
-    response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[
-            {"role": "user", "content": "Say hello in one word."}
-        ]
-    )
-    print(response.choices[0].message.content)
+#The prompt that gives the LLM instructions on how to classify mails.
+CLASSIFICATION_PROMPT = """
+You are an email triage classifier. Classify the email into exactly one of: High, Medium, Low.
 
+Definition of High priority (the only test that matters):
+"If I don't act on this, I will lose something real and painful — money, an
+opportunity, my standing with someone, or access to something I need."
+This must be a GENUINE personal stake, not manufactured urgency.
 
-CLASSIFICATION_PROMPT = """You are an email prioritization assistant. You will be given the sender, subject, and body of an email. Classify it as High or Medium priority.
+High — ONLY if at least one is true:
+- A real deadline with a real consequence (bill due, application closing,
+  appointment, contract expiring, exam/submission deadline)
+- Financial risk (payment failure, overdraft, fraud alert, refund window closing)
+- Security/account risk (suspicious login, account suspension, password reset
+  YOU didn't request)
+- A specific opportunity that requires a response (job offer, interview
+  invite, admission decision, a person waiting on your reply)
+- Legal, academic, or institutional consequence for inaction
 
-Classify it as High if ANY ONE of the following is true:
-(1) the email contains an explicit deadline or date,
-(2) the email contains urgent language such as 'urgent' or 'reply immediately',
-(3) the email implies the recipient must take action.
-These conditions are independent — one alone is enough to qualify as High.
+NOT High, regardless of wording, even if the email uses urgent phrasing,
+countdowns, exclamation points, or "act now" language:
+- Marketing, promotions, sales, discounts, "limited time offers"
+- Betting/gambling platforms (bet closing, odds changing, bonus expiring)
+- Social media engagement hooks (streaks, "you were missed", "see who
+  viewed you", someone followed/liked/reacted)
+- Newsletters, digests, content recommendations
+- Generic "don't miss out" / FOMO copy with no real personal stake
 
-If none of these apply, classify it as Medium — this includes purely informational emails from organizations such as banks, employers, universities, or government bodies, as well as ordinary non-urgent correspondence.
+If the sender is a marketing, betting, or social-engagement platform, treat
+the email as Low or Medium UNLESS it contains one of the genuine High
+conditions above (e.g. a security alert from that same platform still
+counts). Manufactured urgency from these senders is never High on its own.
 
-Respond ONLY with valid JSON in this exact format, with no extra text:
-{"priority": "High" or "Medium", "reason": "one short sentence explaining the classification"}"""
+Medium — informational mail with no urgent stake: statements, receipts,
+newsletters from institutions you have a real relationship with (bank,
+employer, university, government), routine replies, confirmations.
+
+Low — pure marketing/promotional content, social notifications, and
+anything matching the "not High" list above with no Medium-level
+institutional relevance either.
+
+Respond in JSON: {"priority": "High" | "Medium" | "Low", "reason": "<one sentence>"}
+"""
 
 
 def classify_email(sender, subject, body):

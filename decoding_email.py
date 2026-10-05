@@ -113,7 +113,7 @@ def poll_new_emails(user_id):
     )
     conn.commit()
     conn.close()
-    print('poll_new emails reached here')
+    print("polling new user's emails...")
     return new_message_ids
 
 def fetch_and_decode_bodies(user_id, message_ids):
@@ -151,14 +151,4 @@ def fetch_and_decode_bodies(user_id, message_ids):
 
 if __name__ == "__main__":
     service = generate_new_access_token(1)
-
-    conn = db_handler.get_connection("mailsense.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT last_history_id FROM users WHERE id = ?", (1,))
-    stored = cursor.fetchone()[0]
-    conn.close()
-
-    current = service.users().getProfile(userId='me').execute()['historyId']
-
-    print("Stored last_history_id:", stored)
-    print("Gmail's current historyId:", current)
+    print(service)

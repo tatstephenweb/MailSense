@@ -22,7 +22,7 @@ def get_user_tokens(user_id):
         tokens = cursor.fetchone()
         conn.close()
         return tokens
-    return None
+    #return None
 
 #Google needs the user's refresh token, my client id and client secret to generate a new access token. 
 # So a function will be created to generate a new access token using the refresh token, client id and client secret.
@@ -66,5 +66,4 @@ def generate_new_access_token(user_id):
               # Print the new access token, refresh token, and expiry
 
     service = build("gmail", "v1", credentials=creds)
-    print('gnac reached here')
     return service

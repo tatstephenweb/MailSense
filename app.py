@@ -9,7 +9,7 @@ from crypto import decrypt_text
 
 @app.route("/")
 def home():
-    return render_template("mailsense.html")
+    return render_template("mailsense-landing-page.html")
 
 @app.route('/login')
 def login():
@@ -39,7 +39,7 @@ def auth():
     session['user_id'] = user_id
     return redirect(url_for('dashboard'))
 
-@app.route('/logout')
+@app.route('/logout')  
 def logout():
     session.pop('user', None)
     session.pop('user_id', None)
@@ -80,12 +80,34 @@ def get_emails():
             'sender': decrypt_text(email[3]),
             'snippet': decrypt_text(email[4]),
             'priority': email[5],
-            'status': email[6],
-            'created_at': email[9]
+            'reason': email[6],
+            'created_at': email[7]
         })
-    print(result)
+    #print(result)
 
     return jsonify({'priority': priority, 'emails': result})
+
+
+@app.route('/emails/<int:id>/priority', methods=['PATCH'])
+def update_priority(id):
+    data = request.get_json()
+    new_priority = data.get('priority')
+
+    if new_priority not in ('High', 'Medium', 'Low'):
+        return jsonify({'error': 'invalid priority'}), 400
+
+    conn = db_handler.get_connection("mailsense.db")
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE emails SET priority = ? WHERE id = ? AND user_id = ?",
+            (new_priority, id, session['user_id'])
+        )
+        conn.commit()
+        conn.close()
+
+    return jsonify({'success': True})
+
 
 @app.route('/emails/<int:id>')
 def get_email_detail(id):
@@ -107,21 +129,55 @@ def get_email_detail(id):
         result.append({
             'id': email[0],
             'user_id': email[1],
-            #'email_id': email[2],
             'subject': decrypt_text(email[2]),
             'sender': decrypt_text(email[3]),
             'snippet': decrypt_text(email[4]),
             'priority': email[5],
-            'status': email[6],
-            'recieved_at': email[9]
+            'reason': email[6],
+            'created_at': email[7]
         })
 
     return jsonify({
         'emails': result
     })
 
+@app.route('/revoke-access')
+def revoke_access():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'User not logged in'}), 401
+
+    try:
+        db_handler.revoke_user_access(user_id)
+        session.pop('user', None)
+        session.pop(user_id, None)
+        return redirect('/')
+    except Exception as e:
+        print(f"Error revoking access for user {user_id}: {e}")
+        return jsonify({'error': 'Failed to revoke access'}), 500
+    
+@app.route('/api/save-subscription', methods=['POST'])
+#@login_required
+def save_subscription():
+    subscription = request.get_json()
+
+    endpoint = subscription['endpoint']
+    encryption_key = subscription['keys']['p256dh']
+    auth_key = subscription['keys']['auth']
+
+    user_id = session['user_id']
+
+    db_handler.save_push_subscription(user_id, endpoint, encryption_key, auth_key)
+
+    return jsonify({'status': 'ok'})
+
+@app.route('/sw.js')
+def service_worker():
+    return app.send_static_file('sw.js')
+
 
 if __name__ == "__main__":
-    db_handler.create_users_table()  # Ensure the users table is created before running the app
-    db_handler.create_emails_table()  # Ensure the emails table is created before running the app
+    db_handler.create_users_table()
+    db_handler.create_emails_table()
+    db_handler.create_push_subscriptions_table()
     app.run()
