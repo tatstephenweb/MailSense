@@ -4,7 +4,7 @@ html, body {
 }
 
 * {
-  scrollbar-color: #41AB5D transparent;
+  scrollbar-color: #161a22 transparent;
 }
 
 /* Custom scrollbar for the nav and lists, so it stays slim and matches the dark theme */
@@ -21,7 +21,7 @@ html, body {
 }
 
 .custom-scroll::-webkit-scrollbar-thumb {
-  background-color: #41AB5D;
+  background-color: #161a22;
   border-radius: 999px;
 }
 
@@ -31,9 +31,9 @@ html, body {
 
 /* Sidebar nav items */
 .nav-item, .priority-item {
-  color: #C5E8BE;
+  color: #EEE;
   font-size:12px;
-  transition: background-color 120ms ease, color 120ms ease;
+  /*transition: background-color 120ms ease, color 120ms ease;*/
 }
 
 .nav-item:not(.cursor-not-allowed):hover,
@@ -43,7 +43,7 @@ html, body {
 
 .nav-item--active,
 .priority-item--active {
-  background-color: #006E2C;
+  background-color: #323b4d;
   color: #fff;
 }
 
@@ -78,7 +78,8 @@ html, body {
 }
 .mail-row_snippet{
   font-size:10px;
-  color:#747272
+  color:#747272;
+  width: 100%;
 }
 .mail-row_sender{
   font-size:12px;
@@ -100,9 +101,11 @@ html, body {
 .mail-row:hover{
   background-color: #F7FCF5;
 }
-.mail-row:active{
-  border-top: solid 1px #41AB5D;
-  border-bottom: solid 1px #41AB5D;
+.logout-button{
+  background-color: #941c0e60;
+  color: #d22828;
+  width:100%;
+  font-size: 12px;
 }
 
 @keyframes viewFade {
@@ -143,4 +146,19 @@ html, body {
 
 #refreshBtn:active {
   transform: scale(0.97);
+}
+
+body .nav-item, body .priority-item { font-size: 12px; }
+body .mail-row_sender, body .mail-row_subject { font-size: 12px; color: #000; }
+body .mail-row_snippet { font-size: 10px; color: #747272; }
+
+#priority-select {
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+#priority-select option {
+  background: #fff;
+  color: #000;
 }
