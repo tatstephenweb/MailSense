@@ -9,6 +9,8 @@
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700,900&display=swap" rel="stylesheet">
 <link rel="icon" href="{{ url_for('static', filename='favicon-green.png') }}" type="image/png">
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<meta name="theme-color" content="#161A22">
 <script>
   tailwind.config = {
     theme: {
@@ -19,20 +21,21 @@
         colors: {
           canvas: '#FFFFFF',
           panel: '#29700A',
-          darker: '#00451B',
+          darker: '#161a22',
           border: 'rgba(255,255,255,0.06)',
           ink: '#222222',
           muted: '#FFFDF1',
-          faint: '#41AB5D',
+          faint: '#BBB',
           accent: '#38c6b4',
           high: '#ef4444',
           medium: '#eab308',
           low: '#22c55e',
-          firstgreen: '#F7FCF5',
-          secondgreen: '#E4F5DF',
-          thirdgreen: '#C5E8BE',
-          sixthgreen: '#41AB5D',
+          firstgreen: '#FFFFFF',
+          secondgreen: '#EEEEEE',
+          thirdgreen: '#DDD',
+          sixthgreen: '#BBB',
         }
+        
       }
     }
   }
@@ -66,7 +69,7 @@
     <nav id="side-nav" style="border-top-right-radius: 10px;" class="flex-1 overflow-y-auto custom-scroll px-3 pt-3 pb-4 space-y-7">
 
       <div>
-        <button onclick="loadEmails('all')" class="nav-item nav-item--active w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
+        <button onclick="loadEmails('all')" data-filter="all" class="nav-item nav-item--active filter-btn w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
           <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 19V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M4 12h4l2 3h4l2-3h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -80,7 +83,7 @@
       <div>
         <p class="px-3 mb-2 text-[11px] font-bold text-faint tracking-wide">SORT PRIORITY</p>
         <div class="space-y-1">
-          <button onclick="loadEmails('High')" class="priority-item w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
+          <button onclick="loadEmails('High')" data-filter="High" class="priority-item filter-btn w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 3v12" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
               <path d="M6 9l6-6 6 6" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -88,14 +91,14 @@
             </svg>
             High
           </button>
-          <button onclick="loadEmails('Medium')" class="priority-item w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
+         <button onclick="loadEmails('Medium')" data-filter="Medium" class="priority-item filter-btn w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="11" width="18" height="2.5" rx="1.25" fill="#f59e0b"/>
-    <circle cx="12" cy="19" r="1.5" fill="#f59e0b"/>
-  </svg>
+              <rect x="3" y="11" width="18" height="2.5" rx="1.25" fill="#f59e0b"/>
+              <circle cx="12" cy="19" r="1.5" fill="#f59e0b"/>
+            </svg>
             Medium
           </button>
-          <button onclick="loadEmails('Low')" class="priority-item w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
+          <button onclick="loadEmails('Low')" data-filter="Low" class="priority-item filter-btn w-full flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-[15px] font-medium">
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 21V9" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
             <path d="M6 15l6 6 6-6" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -109,32 +112,37 @@
       <div>
         <p class="px-3 mb-2 text-[11px] font-semibold text-faint tracking-wide">ORGANIZE</p>
         <div class="space-y-1">
-          <button class="nav-item text-forthgreen gap-2.5 w-full flex items-center rounded-lg px-3 py-1.5 text-[15px] font-medium text-muted cursor-not-allowed">
+          <!--<button class="nav-item text-forthgreen gap-2.5 w-full flex items-center rounded-lg px-3 py-1.5 text-[15px] font-medium text-muted cursor-not-allowed">
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M18 16v-5a6 6 0 1 0-12 0v5l-1.5 2.5h15L18 16Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M10 21a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <span class="text-thirdgreen">Notification</span>
+          </button>-->
+          <button id="profile-btn" class="nav-item text-forthgreen gap-2.5 w-full flex items-center rounded-lg px-3 py-1.5 text-[15px] font-medium text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+          </svg>
+            <span class="text-thirdgreen">Profile</span>
           </button>
-          <button class="nav-item text-forthgreen gap-2.5 w-full flex items-center rounded-lg px-3 py-1.5 text-[15px] font-medium text-muted cursor-not-allowed">
+          <button id="settings-btn" class="nav-item text-forthgreen gap-2.5 w-full flex items-center rounded-lg px-3 py-1.5 text-[15px] font-medium text-muted">
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9.6a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <span class="text-thirdgreen">Settings</span>
           </button>
+
         </div>
       </div>
 
     </nav>
 
-    <!-- Reserved slot for an upcoming game -->
-    <div class="px-3 pb-3 pt-3 shrink-0 border-t border-border/10">
-      <div id="sidebar-game-slot" class="h-24 rounded-xl bg-sixthgreen"></div>
-    </div>
-
     <!-- Profile -->
-    <div class="flex items-center gap-2 px-3 py-4 border-t border-border">
+    <div class="flex items-center gap-2 px-3 py-3 border-t border-border">
       <div class="h-8 w-8 rounded-full bg-faint">
         <img class="h-8 w-8 rounded-full" src="{{ picture_url }}" alt="Profile Picture">
       </div>
@@ -156,14 +164,14 @@
         <img class="w-8" src="{{ url_for('static', filename='logo-mark-transparent.png') }}" alt="Logo">
         MailSense
       </span>
-      <button id="open-sidebar" class="text-ink p-1 bg-faint rounded-xl" aria-label="Open menu">
+      <button id="open-sidebar" class="text-ink p-1" aria-label="Open menu">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
     </div>
 
-    <section class="flex min-w-0 overflow-hidden">
+    <section class="flex min-w-0 overflow-hidden" style="background-color: white;">
       <!-- List view -->
-      <div id="list-view" class="flex-1 min-w-0 flex flex-col min-h-0 lg:flex">
+      <div id="list-view" class="flex-1 min-w-0 flex flex-col lg:flex md:border-r border-ink/10">
         <div class="px-5 md:px-5 pt-4 pb-2 shrink-0 border-b border-ink/10 bg-firstgreen">
           <h1 id="list-title" class="text-[16px] font-bold text-sixthgreen">My Emails</h1>
           <h2 id="list-priority-title" class="text-[16px] text-uppercase font-bold">All</h2>
@@ -174,7 +182,12 @@
       <!-- Detail view -->
       <div id="detail-view" class="flex-1 min-w-0 flex-col min-h-0 bg-red lg:flex hidden">
         <div class="p-5">
-          <button id="back-to-list" onclick="closeDetailView()" class="lg:hidden text-[14px] font-medium bg-sixthgreen p-2 text-firstgreen">Back</button>
+          <button  onclick="closeDetailView()" class="lg:hidden text-[14px] font-medium p-2 text-btncolor">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+          </button>
         </div>
         <div id="mail-detail" class="flex-1 min-w-0 overflow-y-auto custom-scroll px-6 md:px-10 pb-10"></div>
       </div>
@@ -183,11 +196,56 @@
 
 </div>
 
-<button id="refreshBtn" onclick="location.reload()" title="Refresh">
+<!--<button id="refreshBtn" onclick="location.reload()" title="Refresh">
   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
     <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
   </svg>
-</button>
+</button>-->
+
+  <!-- ...rest of your page... -->
+
+  <div id="profile-popover"
+       class="hidden fixed z-[100] w-72 rounded-xl border border-white/10
+              bg-[#161A22] shadow-2xl p-4">
+
+    <p class="pb-2 text-xs text-faint">My Profile</p>
+
+    <div class="flex items-center gap-2">
+      <div class="h-10 w-10 rounded-full bg-faint">
+        <img class="h-10 w-10 rounded-full" src="{{ picture_url }}" alt="Profile Picture">
+      </div>
+      <div>
+        <span class="text-white" style="font-size: 8px;">{{ name }}</span>
+        <p class="text-muted" style="font-size: 5px;">{{email}}</p>
+      </div>
+    </div>
+  
+    <div class="flex items-center gap-2 mt-4">
+      <a href="/logout" class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/10 hover:text-white transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Log out
+      </a>
+      <a href="/revoke-access" id="revoke-btn" class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/>
+        </svg>
+        Revoke
+      </a>
+
+    </div>
+  </div>
+
+  
+</body>
 
 <script src="{{ url_for('static', filename='js/script.js') }}?v=2"></script>
 </body>

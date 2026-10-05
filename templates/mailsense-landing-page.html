@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MailSense</title>
+<!-- SATOSHI: loads on your own site. Preview hosts may block it and use the fallback font. -->
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap">
+<style>
+:root{
+  --page:#FFF;
+  --frame:#FFF;
+  --ink:#161a22;
+  --ink-soft:#6b6a62;
+  --accent:#2f6b4f;
+  --envelope-back:#d9d5c9;
+  --envelope-front:#e8e4d9;
+  --chip:#fbfaf7;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--frame:#FFF;--ink:#161a22;--ink-soft:#6b6a62}
+}
+:root[data-theme="dark"]{--frame:#FFF;--ink:#161a22;--ink-soft:#6b6a62}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:'Satoshi','DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  -webkit-font-smoothing:antialiased}
+.frame{position:relative;overflow:hidden;background:#fff; padding:0px 20px;
+   min-height:calc(100dvh - 2*clamp(8px,2vw,20px))}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:5; padding:14px 36px;}
+.logo{display:flex;align-items:center;gap:6px;font-weight:700;font-size:1.2rem;letter-spacing:-.02em;color:var(--ink);text-decoration:none}
+.logo img{width:40px}
+.nav-btn{font:500 .95rem 'Satoshi','DM Sans',sans-serif;color:var(--ink);background:var(--chip);
+  border:1px solid var(--line);border-radius:999px;padding:12px 22px;text-decoration:none;
+  box-shadow:0 1px 0 #fff inset,0 6px 16px -8px rgba(40,38,30,.25);transition:transform .15s}
+.nav-btn:hover{transform:translateY(-1px)}
+
+.cta-nav{display:inline-flex;align-items:center;gap:3px;
+  background:#fff;color:#161a22;border:solid 1px #cbc7ba;border-radius:999px;padding:6px 26px 6px 6px;
+  font:500 0.5rem 'Satoshi','DM Sans',sans-serif;text-decoration:none;cursor:pointer;}
+.cta-nav .g{width:30px;height:30px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.cta-nav .g svg{width:20px;height:20px}
+
+/* HERO TEXT — EDIT HERE */
+.hero{text-align:center;max-width:860px;margin:clamp(30px,8vw,60px) auto 0;position:relative;z-index:5}
+h1{margin:0;font-weight:700;font-size:clamp(2.0rem,7.4vw,5.0rem);line-height:1.02;letter-spacing:-.045em;
+  background:linear-gradient(180deg,#161a22 35%,#77766c 115%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin:clamp(18px,2.4vw,28px) auto 0;max-width:520px;color:var(--ink-soft);
+  font-size:clamp(.95rem,1.6vw,1.08rem);line-height:1.55;font-weight:500}
+.cta{display:inline-flex;align-items:center;gap:12px;margin-top:clamp(24px,3vw,36px);
+  background:var(--ink);color:#f5f3ee;border:0;border-radius:999px;padding:15px 26px 15px 15px;
+  font:700 1rem 'Satoshi','DM Sans',sans-serif;text-decoration:none;cursor:pointer;
+  box-shadow:0 14px 34px -12px rgba(34,35,31,.55),0 0 0 6px rgba(47,107,79,.10);transition:transform .15s,box-shadow .15s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 18px 38px -12px rgba(34,35,31,.6),0 0 0 8px rgba(47,107,79,.14)}
+.cta .g{width:38px;height:38px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.cta .g svg{width:20px;height:20px}
+.sub{display:block;margin-top:14px;font-size:.85rem;color:var(--ink-soft)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+/* ENVELOPE */
+.stage{position:relative;width:min(940px,100%);margin:clamp(30px,5vw,56px) auto 0;padding-top:4%}
+.envelope{position:relative;width:100%;aspect-ratio:16/8.4;}
+.env-back{position:absolute;inset:0;background:linear-gradient(180deg,#161a22,#000);border-radius:22px 22px 22px 22px}
+.env-flap{position:absolute;left:0;right:0;top:0;height:60%;background:linear-gradient(180deg,#161a22,#161a22);
+  clip-path:polygon(0 0,100% 0,50% 100%);border-radius:22px 22px 0 0;transform:translateY(-38%) ;opacity:.0}
+.shot{position:absolute;left:5%;right:5%;top:-16%;aspect-ratio:16/10;background:#fff;border:1px solid #cbc7ba;
+  border-radius:16px 16px 0 0;overflow:hidden;z-index:2;}
+.shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;object-fit: contain;}
+.shot img:not([src]),.shot img[src=""]{display:none}
+.ph b{display:block;color:var(--ink);font-size:1.1em;margin-bottom:4px}
+.env-front{position:absolute;left:0;right:0;bottom:0;height:52%;z-index:3;
+  background:linear-gradient(180deg,#161a22,#111 60%,#161a22);
+  clip-path:polygon(0 0,50% 46%,100% 0,100% 100%,0 100%); border-radius:0 0 22px 22px}
+.env-side{position:absolute;bottom:0;top:38%;z-index:3;width:50%;background:linear-gradient(90deg,#ddd8cb,#e9e5da)}
+.env-side.l{left:0;clip-path:polygon(0 0,100% 62%,100% 100%,0 100%)}
+.env-side.r{right:0;background:linear-gradient(270deg,#ddd8cb,#e9e5da);clip-path:polygon(0 62%,100% 0,100% 100%,0 100%)}
+
+/* CHIPS + SIDE CARDS */
+.chip{position:absolute;z-index:6;background:#fff;border-radius:999px;
+  padding:10px 20px;font-weight:400;font-size:.85rem;box-shadow:0 12px 26px -12px rgba(40,38,30,.4)}
+.chip.a{left:-2%;top:22%}.chip.b{right:1%;top:38%}
+.side{position:absolute;z-index:1;width:26%;aspect-ratio:3/4;background:#fff;border:1px solid #cbc7ba;border-radius:14px;overflow:hidden;
+  box-shadow:0 18px 30px -16px rgba(40,38,30,.35);bottom:6%}
+.side.l{left:-15%;transform:perspective(700px) rotateY(24deg) rotate(-2deg)}
+.side.r{right:-15%;transform:perspective(700px) rotateY(-24deg) rotate(2deg)}
+.side img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.side img:not([src]),.side img[src=""]{display:none}
+.side .ph{font-size:.75rem}
+
+footer{margin-top:20px; padding: 20px;}
+
+@media (max-width:1100px){.side{display:none}}
+@media (max-width:640px){
+  .chip{font-size:.75rem;padding:7px 12px}
+  .chip.a{left:0;top:6%}.chip.b{right:0;top:30%}
+  .nav-btn{padding:10px 16px;font-size:.85rem}
+  .env-front{height:46%}
+  .stage{padding-top:10%}
+  nav{padding:14px 6px;}
+  .cta{gap:8px;margin-top:clamp(24px,3vw,36px);
+  padding:8px 20px 8px 8px;
+  font:400 0.5rem 'Satoshi','DM Sans',sans-serif;
+  }
+
+}
+@media (prefers-reduced-motion:no-preference){
+  .shot{animation:rise 1s .2s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes rise{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+}
+</style>
+</head>
+<body>
+ <div class="frame">
+
+  <nav>
+    <a class="logo" href="#" aria-label="MailSense home">
+      <img src="{{ url_for('static', filename='mailsense-logo-black.png') }}" alt="logo">
+      <span>
+        MailSense
+      </span>
+    </a>
+    <a class="cta-nav" href="{{ url_for('login') }}">
+      <span class="g"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.2 5.5-4.7 7.2l7.6 5.9c4.4-4.1 6.9-10.1 6.9-17.6z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.100 15.900-5.800l-7.600-5.900c-2.100 1.400-4.900 2.300-8.300 2.300-6.300 0-11.600-4.100-13.500-9.800l-7.900 6.100C6.500 42.600 14.600 48 24 48z"/></svg></span>
+      Continue with Google
+    </a>
+  </nav>
+
+  <!-- ===== EDIT YOUR HEADLINE, PARAGRAPH AND BUTTON TEXT BELOW ===== -->
+  <header class="hero">
+    <h1>Know Which Emails Matter Before You Open Them</h1>
+    <p>MailSense reads your Gmail, ranks every message by priority, and help you sort important ones. Spend your time on replies, not sorting.</p>
+    <a class="cta" href="{{ url_for('login') }}">
+      <span class="g"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.2 5.5-4.7 7.2l7.6 5.9c4.4-4.1 6.9-10.1 6.9-17.6z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.100 15.900-5.800l-7.600-5.900c-2.100 1.400-4.900 2.300-8.300 2.300-6.300 0-11.600-4.100-13.500-9.800l-7.900 6.100C6.500 42.600 14.600 48 24 48z"/></svg></span>
+      Continue with Google
+    </a>
+  </header>
+  <!-- ===== END EDIT AREA ===== -->
+
+  <div class="stage">
+    <span class="chip a">Reminders feature</span>
+    <span class="chip b">Priority Ranking</span>
+
+
+    <div class="envelope">
+      <div class="env-back"></div>
+      <!-- MAIN SCREENSHOT: take it at 1600x1000 (16:10). Put the file path in src="" below. -->
+      <div class="shot">
+        <img src="{{ url_for('static', filename='Screenshot 2026-09-30 080911.png') }}" alt="MailSense dashboard showing prioritized emails">
+      </div>
+      <div class="env-front"></div>
+    </div>
+  </div>
+
+ </div>
+
+ <footer>
+ </footer>
+</body>
+</html>
