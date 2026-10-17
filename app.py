@@ -30,9 +30,7 @@ def auth():
     access_token = token['access_token']
     refresh_token = token.get('refresh_token')  # Use .get() to avoid KeyError if refresh_token is not present
     token_expiry = token['expires_at']
-
-    print(google_sub, email, name, picture_url, access_token, refresh_token, token_expiry)
-
+    
     # Insert or update user in the database
     user_id = db_handler.insert_user(
         google_sub, email, name, picture_url, access_token, refresh_token, token_expiry
