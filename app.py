@@ -192,6 +192,9 @@ def service_worker():
 
 
 if __name__ == "__main__":
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    
     db_handler.create_users_table()
     db_handler.create_emails_table()
     db_handler.create_push_subscriptions_table()
