@@ -15,9 +15,9 @@ def home():
 
 @app.route('/login')
 def login():
-    redirect_uri = url_for('auth', _external=True)
+    redirect_uri = os.environ.get("OAUTH_REDIRECT_URI") or url_for('auth', _external=True)
     return oauth.google.authorize_redirect(redirect_uri, access_type='offline', prompt='consent')
-
+    
 @app.route('/auth/callback')
 def auth():
     token = oauth.google.authorize_access_token()
