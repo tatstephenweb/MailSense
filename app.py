@@ -8,6 +8,7 @@ import db_handler
 from crypto import decrypt_text
 from decoding_email import initialize_sync
 from tasks_runner import start_watch
+import os
 
 @app.route("/")
 def home():
@@ -15,7 +16,7 @@ def home():
 
 @app.route('/login')
 def login():
-    redirect_uri = os.environ.get("OAUTH_REDIRECT_URI") or url_for('auth', _external=True)
+    redirect_uri = os.getenv("OAUTH_REDIRECT_URI") or url_for('auth', _external=True)
     return oauth.google.authorize_redirect(redirect_uri, access_type='offline', prompt='consent')
     
 @app.route('/auth/callback')
