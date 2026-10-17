@@ -141,14 +141,14 @@ function renderEmails(emails) {
             ${firstLetter}
           </div>
           <div class="flex flex-col w-full min-w-0 root">
-            <div class="min-w-0 truncate text-[14px] mail-row_sender">${clean(email.sender)}</div>
+            <div class="min-w-0 truncate text-base md:text-sm mail-row_sender">${clean(email.sender)}</div>
             
             <div class="flex w-full items-center justify-between gap-2 bg-blue">
-              <span class="truncate min-w-0 flex-1 text-[14px] mail-row_subject">${clean(email.subject)}</span>
+              <span class="truncate min-w-0 flex-1 text-base md:text-sm mail-row_subject">${clean(email.subject)}</span>
               <span class="mail-row_priority text-center shrink-0">${email.priority}</span>
             </div>
             
-            <div class="min-w-0 truncate text-[12px] mail-row_snippet">${clean(email.snippet)}</div>
+            <div class="min-w-0 truncate text-sm mail-row_snippet">${clean(email.snippet)}</div>
           </div>
           `;
         let avatarDiv = div.querySelector('.avatar-email');
