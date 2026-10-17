@@ -4,9 +4,10 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 import os
 from datetime import datetime, timezone
-
+from flask import Flask
 from dotenv import load_dotenv
 load_dotenv()
+
 
 #the function returns the access token, refresh token and token expiry for a given user id from the database
 #We have to wrap it to a Credentials object to use it with the Gmail API. 
@@ -18,7 +19,7 @@ def get_user_tokens(user_id):
     conn = db_handler.get_connection("mailsense.db")
     if conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT access_token, refresh_token, token_expiry FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT access_token, refresh_token, token_expiry FROM users WHERE id = %s", (user_id,))
         tokens = cursor.fetchone()
         conn.close()
         return tokens
@@ -57,7 +58,7 @@ def generate_new_access_token(user_id):
         if conn:
             cursor = conn.cursor()
             cursor.execute(
-                "UPDATE users SET access_token = ?, token_expiry = ? WHERE id = ?",
+                "UPDATE users SET access_token = %s, token_expiry = %s WHERE id = %s",
                 (creds.token, new_expiry, user_id),
             )
             conn.commit()

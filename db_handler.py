@@ -1,12 +1,20 @@
+import os
 from datetime import datetime
-import sqlite3 as sqlite
+import psycopg2
+from dotenv import load_dotenv
 from crypto import encrypt_text
 import requests, scheduler
 
-#Datebase creation with SQLite
-def get_connection(db_name):
+load_dotenv()
+
+
+# Database connection with PostgreSQL
+# The db_name argument is kept so every existing call like
+# get_connection("mailsense.db") still works. It is ignored now,
+# the real address comes from DATABASE_URL in your .env file.
+def get_connection(db_name=None):
     try:
-        return sqlite.connect(db_name)
+        return psycopg2.connect(os.environ["DATABASE_URL"])
     except Exception as e:
         print(f"Error: {e}")
         return None
@@ -17,41 +25,44 @@ def create_users_table():
     if conn:
         cursor = conn.cursor()
         try:
+            # token_expiry is BIGINT because the code stores a Unix timestamp (int)
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     email TEXT NOT NULL UNIQUE,
                     name TEXT NOT NULL,
                     google_sub TEXT NOT NULL UNIQUE,
                     picture_url TEXT,
                     access_token TEXT,
                     refresh_token TEXT,
-                    token_expiry DATETIME,
+                    token_expiry BIGINT,
                     last_history_id TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
             conn.commit()
             print("Table 'users' created successfully.")
         except Exception as e:
+            conn.rollback()
             print(f"Error: {e}")
         conn.close()
 
 def insert_user(google_sub, email, name, picture_url, access_token, refresh_token, token_expiry):
+    user_id = None
     conn = get_connection("mailsense.db")
     if conn:
         cursor = conn.cursor()
         try:
-            account_exists_query = "SELECT * FROM users WHERE google_sub = ?"
-            account_exists = cursor.execute(account_exists_query, (google_sub,)).fetchone()
-            if account_exists: #CHECK IF THE USER ALREADY EXIXTS IN THE DATABASE
+            cursor.execute("SELECT * FROM users WHERE google_sub = %s", (google_sub,))
+            account_exists = cursor.fetchone()
+            if account_exists: #CHECK IF THE USER ALREADY EXISTS IN THE DATABASE
                 print(f"User with Google sub {google_sub} already exists.")
                 #Updating the existing user's tokens and expiry
                 if refresh_token:
-                    cursor.execute("UPDATE users SET access_token = ?, refresh_token = ?, token_expiry = ? WHERE google_sub = ?",
+                    cursor.execute("UPDATE users SET access_token = %s, refresh_token = %s, token_expiry = %s WHERE google_sub = %s",
                                 (access_token, refresh_token, token_expiry, google_sub))
                 else:
-                    cursor.execute("UPDATE users SET access_token = ?, token_expiry = ? WHERE google_sub = ?",
+                    cursor.execute("UPDATE users SET access_token = %s, token_expiry = %s WHERE google_sub = %s",
                                 (access_token, token_expiry, google_sub))
 
                 conn.commit()
@@ -61,14 +72,16 @@ def insert_user(google_sub, email, name, picture_url, access_token, refresh_toke
                 #Inserting a new user into the database if he does not exist
                 cursor.execute('''
                     INSERT INTO users (google_sub, email, name, picture_url, access_token, refresh_token, token_expiry)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
                 ''', (google_sub, email, name, picture_url, access_token, refresh_token, token_expiry))
+                user_id = cursor.fetchone()[0]
                 conn.commit()
-                user_id = cursor.lastrowid
                 print (user_id)
                 print(f"User {email} inserted successfully.")
 
         except Exception as e:
+            conn.rollback()
             print(f"Error: {e}")
         conn.close()
 
@@ -81,20 +94,21 @@ def create_emails_table():
         try:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS emails (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     user_id INTEGER NOT NULL,
                     subject TEXT,
                     sender TEXT,
                     snippet TEXT,
                     priority TEXT,
                     reason TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 )
             ''')
             conn.commit()
             print("Table 'emails' created successfully.")
         except Exception as e:
+            conn.rollback()
             print(f"Error: {e}")
         conn.close()
 
@@ -108,11 +122,12 @@ def insert_email(user_id, subject, sender, snippet, priority, reason):
         try:
             cursor.execute('''
                 INSERT INTO emails (user_id, subject, sender, snippet, priority, reason)
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s)
             ''', (user_id, result[1], result[0], result[2], priority, reason))
             conn.commit()
             print(f"Email inserted successfully.")
         except Exception as e:
+            conn.rollback()
             print(f"Error: {e}")
         conn.close()
 
@@ -122,7 +137,7 @@ def create_push_subscriptions_table():
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS push_subscriptions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             endpoint TEXT NOT NULL UNIQUE,
             encryption_key TEXT NOT NULL,
@@ -139,7 +154,7 @@ def save_push_subscription(user_id, endpoint, encryption_key, auth_key):
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO push_subscriptions (user_id, endpoint, encryption_key, auth_key)
-        VALUES (?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s)
         ON CONFLICT(endpoint) DO UPDATE SET
             encryption_key = excluded.encryption_key,
             auth_key = excluded.auth_key
@@ -153,7 +168,7 @@ def get_push_subscriptions(user_id):
     conn = get_connection("mailsense.db")
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT endpoint, encryption_key, auth_key FROM push_subscriptions WHERE user_id = ?",
+        "SELECT endpoint, encryption_key, auth_key FROM push_subscriptions WHERE user_id = %s",
         (user_id,)
     )
     rows = cursor.fetchall()
@@ -164,7 +179,7 @@ def get_push_subscriptions(user_id):
 def delete_push_subscription(endpoint):
     conn = get_connection("mailsense.db")
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
+    cursor.execute("DELETE FROM push_subscriptions WHERE endpoint = %s", (endpoint,))
     conn.commit()
     conn.close()
 
@@ -192,17 +207,19 @@ def revoke_user_access(user_id):
         timeout=10,
     )
 
+    # ORDER MATTERS in Postgres: child tables first, users last,
+    # because emails and push_subscriptions point to users(id).
     TABLES = {
-        'users': 'id',
         'emails': 'user_id',
         'push_subscriptions': 'user_id',
+        'users': 'id',
     }
 
     conn = get_connection('mailsense.db')
     try:
         cursor = conn.cursor()
         for table, column in TABLES.items():
-            cursor.execute(f"DELETE FROM {table} WHERE {column} = ?", (user_id,))
+            cursor.execute(f"DELETE FROM {table} WHERE {column} = %s", (user_id,))
         conn.commit()
     except Exception:
         conn.rollback()

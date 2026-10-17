@@ -3,9 +3,11 @@ from flask import jsonify, request
 load_dotenv()
 import authenticate  # Import authentication module
 from authenticate import app, Flask, url_for, session, render_template, redirect, oauth
-import sqlite3 as sqlite
+#import sqlite3 as sqlite
 import db_handler
 from crypto import decrypt_text
+from decoding_email import initialize_sync
+from tasks_runner import start_watch
 
 @app.route("/")
 def home():
@@ -35,8 +37,12 @@ def auth():
     user_id = db_handler.insert_user(
         google_sub, email, name, picture_url, access_token, refresh_token, token_expiry
     )
+    
+    initialize_sync(user_id)
+    start_watch(user_id)
 
     session['user_id'] = user_id
+
     return redirect(url_for('dashboard'))
 
 @app.route('/logout')  
@@ -47,19 +53,21 @@ def logout():
 
 
 @app.route("/dashboard")
+#@login_required
 def dashboard():
     return render_template("index.html", name = session['user']['name'], email = session['user']['email'], picture_url = session['user']['picture'] or url_for('static', filename='default-image.png'))
 
 #TO GET EMAILS FROM THE DATABASE
 @app.route("/emails")
+#@login_required
 def get_emails():
     priority = request.args.get('priority', 'all')
 
-    query = "SELECT * FROM emails WHERE user_id = ?"
+    query = "SELECT * FROM emails WHERE user_id = %s"
     params = (session['user_id'],)
 
     if priority != 'all':
-        query += " AND priority = ?"
+        query += " AND priority = %s"
         params += (priority,)
 
     query += " ORDER BY created_at DESC"
@@ -89,6 +97,7 @@ def get_emails():
 
 
 @app.route('/emails/<int:id>/priority', methods=['PATCH'])
+#@login_required
 def update_priority(id):
     data = request.get_json()
     new_priority = data.get('priority')
@@ -100,7 +109,7 @@ def update_priority(id):
     if conn:
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE emails SET priority = ? WHERE id = ? AND user_id = ?",
+            "UPDATE emails SET priority = %s WHERE id = %s AND user_id = %s",
             (new_priority, id, session['user_id'])
         )
         conn.commit()
@@ -110,8 +119,9 @@ def update_priority(id):
 
 
 @app.route('/emails/<int:id>')
+#@login_required
 def get_email_detail(id):
-    query = "SELECT * FROM emails WHERE id = ?"
+    query = "SELECT * FROM emails WHERE id = %s"
     params = (id,)
     
     conn = db_handler.get_connection("mailsense.db")
@@ -157,7 +167,6 @@ def revoke_access():
         return jsonify({'error': 'Failed to revoke access'}), 500
     
 @app.route('/api/save-subscription', methods=['POST'])
-#@login_required
 def save_subscription():
     subscription = request.get_json()
 
@@ -170,6 +179,12 @@ def save_subscription():
     db_handler.save_push_subscription(user_id, endpoint, encryption_key, auth_key)
 
     return jsonify({'status': 'ok'})
+
+@app.route('/push/unsubscribe', methods=['POST'])
+def unsubscribe():
+    endpoint = request.get_json()['endpoint']
+    db_handler.delete_push_subscription(endpoint)
+    return '', 204
 
 @app.route('/sw.js')
 def service_worker():

@@ -1,6 +1,7 @@
 import base64
 from scheduler import generate_new_access_token
 import db_handler
+from googleapiclient.errors import HttpError
 from classifier import classify_email
 #Function to decode body of the mail from base64 to plain understandable text
 
@@ -66,7 +67,7 @@ def initialize_sync(user_id):
     if conn:
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE users SET last_history_id = ? WHERE id = ?",
+            "UPDATE users SET last_history_id = %s WHERE id = %s",
             (current_history_id, user_id)
         )
         conn.commit()
@@ -83,7 +84,7 @@ def poll_new_emails(user_id):
     # Get the last saved historyId for this user
     conn = db_handler.get_connection("mailsense.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT last_history_id FROM users WHERE id = ?", (user_id,))
+    cursor.execute("SELECT last_history_id FROM users WHERE id = %s", (user_id,))
     row = cursor.fetchone()
 
     if not row or not row[0]:
@@ -108,13 +109,14 @@ def poll_new_emails(user_id):
 
     new_history_id = response.get('historyId', last_history_id)
     cursor.execute(
-        "UPDATE users SET last_history_id = ? WHERE id = ?",
+        "UPDATE users SET last_history_id = %s WHERE id = %s",
         (new_history_id, user_id)
     )
     conn.commit()
     conn.close()
     print("polling new user's emails...")
     return new_message_ids
+
 
 def fetch_and_decode_bodies(user_id, message_ids):
     service = generate_new_access_token(user_id)
@@ -123,11 +125,17 @@ def fetch_and_decode_bodies(user_id, message_ids):
 
     emails = []
     for msg_id in message_ids:
-        message = service.users().messages().get(
-            userId='me',
-            id=msg_id,
-            format='full'
-        ).execute()
+        try:
+            message = service.users().messages().get(
+                userId='me',
+                id=msg_id,
+                format='full'
+            ).execute()
+        except HttpError as e:
+            if e.resp.status == 404:
+                print(f"Message {msg_id} no longer exists, skipping")
+                continue
+            raise
 
         payload = message['payload']
         body = decode_email_body(payload)
@@ -139,7 +147,6 @@ def fetch_and_decode_bodies(user_id, message_ids):
         classification = classify_email(sender, subject, body)
 
         emails.append({
-            #'message_id': msg_id,
             'sender': sender,
             'subject': subject,
             'body': body,

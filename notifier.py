@@ -3,6 +3,11 @@ import json
 from pywebpush import webpush, WebPushException
 import db_handler
 from crypto import decrypt_text
+from datetime import datetime, timezone
+from flask import Flask
+from apscheduler.schedulers.blocking import BlockingScheduler
+
+scheduler = BlockingScheduler()
 
 
 def send_push_notification(user_id, subject, sender):
@@ -36,6 +41,7 @@ def send_push_notification(user_id, subject, sender):
 
 def send_high_priority_reminders(): #this function will send reminder high priority mails notifications to users on a regular
     emails = db_handler.get_active_high_emails()
+    print(f"Sending reminders for {len(emails)} high priority emails")
     for email in emails:
         try:
             
@@ -47,6 +53,21 @@ def send_high_priority_reminders(): #this function will send reminder high prior
                 sender=sender
             )
         except Exception as e:
-            print(f"Reminder failed for email {email['id']}: {e}")
+            print(f"Reminder failed for email {e}")
 
-send_high_priority_reminders()
+
+
+scheduler.add_job(
+    send_high_priority_reminders,
+    trigger="cron",
+    hour=8,
+    minute=3,
+    timezone="Africa/Lagos",
+    id="high_priority_reminders",
+    max_instances=1,
+    coalesce=True,
+    misfire_grace_time=3600,
+)
+
+if __name__ == "__main__":
+    scheduler.start()
