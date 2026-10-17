@@ -1,6 +1,7 @@
 import os
 import json
 from pywebpush import webpush, WebPushException
+from py_vapid import Vapid
 import db_handler
 from crypto import decrypt_text
 from datetime import datetime, timezone
@@ -8,6 +9,17 @@ from flask import Flask
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 scheduler = BlockingScheduler()
+
+
+def get_vapid_key():
+    # On Railway the key is stored as text in VAPID_PRIVATE_KEY.
+    # Locally it still falls back to the file path in VAPID_PRIVATE_KEY_PATH.
+    pem = os.environ.get("VAPID_PRIVATE_KEY")
+    if pem:
+        # some dashboards store line breaks as the two characters \n, so restore them
+        pem = pem.replace("\\n", "\n").strip()
+        return Vapid.from_pem(pem.encode())
+    return os.environ["VAPID_PRIVATE_KEY_PATH"]
 
 
 def send_push_notification(user_id, subject, sender):
@@ -30,7 +42,7 @@ def send_push_notification(user_id, subject, sender):
             webpush(
                 subscription_info=subscription_info,
                 data=payload,
-                vapid_private_key=os.environ["VAPID_PRIVATE_KEY_PATH"],
+                vapid_private_key=get_vapid_key(),
                 vapid_claims={"sub": os.environ["VAPID_CLAIM_EMAIL"]}
             )
         except WebPushException as ex:

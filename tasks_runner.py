@@ -4,6 +4,7 @@ load_dotenv()
 
 import notifier
 from google.cloud import pubsub_v1
+from google.oauth2 import service_account
 import db_handler
 from scheduler import get_user_tokens, generate_new_access_token
 from decoding_email import poll_new_emails, fetch_and_decode_bodies
@@ -30,6 +31,8 @@ def lookup_user_id(email):
     )
     rows = cursor.fetchone()
     conn.close()
+    if rows is None:  # user not in our database (for example, deleted)
+        return None
     return rows[0]
     
 
@@ -56,8 +59,19 @@ def handle_message(message):
         logging.exception("Failed handling message")
         message.nack()  # Pub/Sub will redeliver it
 
+
+def make_subscriber():
+    # On Railway the service account is stored as JSON text in GOOGLE_SERVICE_ACCOUNT_JSON.
+    # Locally it still falls back to GOOGLE_APPLICATION_CREDENTIALS (a file path).
+    raw = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if raw:
+        creds = service_account.Credentials.from_service_account_info(json.loads(raw))
+        return pubsub_v1.SubscriberClient(credentials=creds)
+    return pubsub_v1.SubscriberClient()
+
+
 def main():
-    subscriber = pubsub_v1.SubscriberClient()
+    subscriber = make_subscriber()
     sub_path = os.getenv("PUBSUB_SUBSCRIPTION")
     flow = pubsub_v1.types.FlowControl(max_messages=1)
     future = subscriber.subscribe(sub_path, callback=handle_message, flow_control=flow)
