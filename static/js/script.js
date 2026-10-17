@@ -378,4 +378,16 @@ window.addEventListener("resize", () => {
   if (!popover.classList.contains("hidden")) positionPopover();
 });
 
-
+async function logout() {
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  if (sub) {
+    await fetch('/push/unsubscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: sub.endpoint })
+    });
+    await sub.unsubscribe();
+  }
+  window.location.href = '/logout';
+}

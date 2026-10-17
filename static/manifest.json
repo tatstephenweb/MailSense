@@ -1,0 +1,21 @@
+{
+  "name": "MailSense",
+  "short_name": "MailSense",
+  "description": "Gmail inbox prioritization",
+  "start_url": "/logout",
+  "display": "standalone",
+  "background_color": "#FFF",
+  "theme_color": "#161A22",
+  "icons": [
+    {
+      "src": "/static/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
