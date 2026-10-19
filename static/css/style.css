@@ -162,3 +162,18 @@ body .mail-row_snippet { font-size: 10px; color: #747272; }
   background: #fff;
   color: #000;
 }
+
+
+/* ===== Phone text sizes (below Tailwind's md breakpoint, 768px) =====
+   Desktop sizes above are unchanged. These rules sit at the end of the file
+   and use "body ..." so they win over the fixed font sizes set earlier. */
+@media screen and (max-width: 767px) {
+  /* sidebar menu items */
+  body .nav-item, body .priority-item { font-size: 16px; }
+
+  /* email list rows */
+  body .mail-row_sender, body .mail-row_subject { font-size: 16px; }
+  body .mail-row_snippet { font-size: 14px; }
+  body .mail-row_priority { font-size: 12px; }
+  body .avatar-email { font-size: 16px; }
+}
