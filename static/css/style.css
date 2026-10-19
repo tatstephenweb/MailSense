@@ -32,7 +32,6 @@ html, body {
 /* Sidebar nav items */
 .nav-item, .priority-item {
   color: #EEE;
-  font-size:12px;
   /*transition: background-color 120ms ease, color 120ms ease;*/
 }
 
