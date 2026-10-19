@@ -163,16 +163,16 @@ footer{margin-top:20px; padding: 20px;}
 
  </div>
 
- <!-- MailSense footer: paste just before </body>, outside any max-width container -->
+<!-- MailSense footer: paste just before </body>, outside any max-width container -->
 <footer class="ms-footer">
   <svg class="ms-footer__mark" viewBox="0 0 1000 160" role="img" aria-label="MailSense">
     <defs>
-      <!-- Fill colours come from the app palette (darker -> panel green).
+      <!-- Grey fill (top -> bottom). Change the two stop-color values to adjust.
            To fill the letters with a photo instead, replace this gradient with an
            SVG <pattern> that contains an <image>, and point fill="url(#...)" at it. -->
       <linearGradient id="ms-footer-fill" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#161a22"/>
-        <stop offset="1" stop-color="#29700A"/>
+        <stop offset="0" stop-color="#6b7280"/>
+        <stop offset="1" stop-color="#d1d5db"/>
       </linearGradient>
     </defs>
     <text x="4" y="156" textLength="992" lengthAdjust="spacingAndGlyphs"
@@ -185,7 +185,7 @@ footer{margin-top:20px; padding: 20px;}
 <style>
   .ms-footer {
     background: #f4f4f2;
-    padding: clamp(1.5rem, 5vw, 3.5rem) clamp(1rem, 4vw, 3rem) 0;
+    padding: clamp(3rem, 10vw, 7rem) clamp(1rem, 4vw, 3rem) 0;
     overflow: hidden;
     line-height: 0;
   }
