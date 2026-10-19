@@ -52,14 +52,14 @@
 
   <!-- Sidebar -->
   <aside id="sidebar"
-    class="fixed md:static z-40 inset-y-0 left-0 w-4/5 max-w-xs md:w-52 md:max-w-none -translate-x-full md:translate-x-0
+    class="fixed md:static z-40 inset-y-0 left-0 w-4/5 max-w-xs md:w-52 -translate-x-full md:translate-x-0
            transition-transform duration-200 ease-out
            bg-darker border-r border-border flex flex-col h-full">
 
     <!-- Brand -->
     <div class="flex items-center gap-1.5 px-5 pt-3 pb-3 shrink-0 border-b border-border/10">
       <img class="w-14" src="{{ url_for('static', filename='logo-mark-transparent.png') }}" alt="Logo">
-      <span class="text-xl md:text-[17px] text-white font-bold tracking-tight">MailSense</span>
+      <span class="text-xl md:text-base text-white font-bold tracking-tight">MailSense</span>
       <button id="close-sidebar" class="ml-auto md:hidden text-faint hover:text-ink p-2" aria-label="Close menu">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
@@ -143,12 +143,12 @@
 
     <!-- Profile -->
     <div class="flex items-center gap-3 md:gap-2 px-3 py-3 border-t border-border">
-      <div class="h-10 md:h-8 w-10 md:w-8 rounded-full bg-faint shrink-0">
+      <div class="h-10 md:h-8 w-10 md:w-8 shrink-0 rounded-full bg-faint">
         <img class="h-10 w-10 md:h-8 md:w-8 rounded-full" src="{{ picture_url }}" alt="Profile Picture">
       </div>
       <div class="min-w-0">
         <span class="text-white text-lg md:text-sm">{{ name }}</span>
-        <p class="text-muted text-base md:text-xs truncate">{{email.split('@')[0]}}</p>
+        <p class="text-muted text-sm md:text-xs truncate">{{email.split('@')[0]}}</p>
       </div>
 
     </div>
@@ -173,8 +173,8 @@
       <!-- List view -->
       <div id="list-view" class="flex-1 min-w-0 flex flex-col lg:flex md:border-r border-ink/10">
         <div class="px-5 md:px-5 pt-4 pb-2 shrink-0 border-b border-ink/10 bg-firstgreen">
-          <h1 id="list-title" class="text-lg md:text-base font-bold text-gray-500">My Emails</h1>
-          <h2 id="list-priority-title" class="text-xl md:text-base text-uppercase font-bold">All</h2>
+          <h1 id="list-title" class="text-lg md:text-[16px] font-bold text-gray-600">My Emails</h1>
+          <h2 id="list-priority-title" class="text-xl md:text-[16px] text-uppercase font-bold">All</h2>
         </div>
         <div id="mail-list" class="flex-1 overflow-y-auto custom-scroll px-2 md:px-2"></div>
       </div>
@@ -182,7 +182,7 @@
       <!-- Detail view -->
       <div id="detail-view" class="flex-1 min-w-0 flex-col min-h-0 bg-red lg:flex hidden">
         <div class="p-5">
-          <button  onclick="closeDetailView()" class="lg:hidden text-[14px] font-medium p-3 text-btncolor">
+          <button  onclick="closeDetailView()" class="lg:hidden text-[14px] font-medium p-2 text-btncolor">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
@@ -205,23 +205,23 @@
   <!-- ...rest of your page... -->
 
   <div id="profile-popover"
-       class="hidden fixed z-[100] w-72 max-w-[90vw] rounded-xl border border-white/10
+       class="hidden fixed z-[100] w-72 max-w-[calc(100vw-1.5rem)] rounded-xl border border-white/10
               bg-[#161A22] shadow-2xl p-4">
 
     <p class="pb-2 text-sm md:text-xs text-faint">My Profile</p>
 
     <div class="flex items-center gap-2">
-      <div class="h-10 w-10 rounded-full bg-faint shrink-0">
+      <div class="h-10 w-10 shrink-0 rounded-full bg-faint">
         <img class="h-10 w-10 rounded-full" src="{{ picture_url }}" alt="Profile Picture">
       </div>
       <div class="min-w-0">
         <span class="text-white text-base">{{ name }}</span>
-        <p class="text-muted text-sm break-all">{{email}}</p>
+        <p class="text-muted text-sm break-words">{{email}}</p>
       </div>
     </div>
   
     <div class="flex items-center gap-2 mt-4">
-      <button onclick="logout()" class="flex items-center gap-3 w-full px-3 py-3 md:py-2 rounded-lg text-base md:text-sm text-gray-300 hover:bg-white/10 hover:text-white transition">
+      <button onclick="logout()" class="flex items-center gap-3 w-full px-3 py-2.5 md:py-2 rounded-lg text-base md:text-sm text-gray-300 hover:bg-white/10 hover:text-white transition">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="1.8"
             stroke-linecap="round" stroke-linejoin="round">
@@ -231,7 +231,7 @@
         </svg>
         Log out
       </button>
-      <a href="/revoke-access" id="revoke-btn" class="flex items-center gap-3 w-full px-3 py-3 md:py-2 rounded-lg text-base md:text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition">
+      <a href="/revoke-access" id="revoke-btn" class="flex items-center gap-3 w-full px-3 py-2.5 md:py-2 rounded-lg text-base md:text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="1.8"
             stroke-linecap="round" stroke-linejoin="round">
