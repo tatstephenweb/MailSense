@@ -391,3 +391,66 @@ async function logout() {
   }
   window.location.href = '/logout';
 }
+
+const notifBtn = document.getElementById('notifBtn');
+const notifHint = document.getElementById('notifHint');
+
+async function refreshNotifButton() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInstalled = window.navigator.standalone === true ||
+                      window.matchMedia('(display-mode: standalone)').matches;
+
+  if (isIOS && !isInstalled) {
+    notifBtn.disabled = true;
+    notifHint.textContent = 'On iPhone: tap Share → Add to Home Screen, then open MailSense from your home screen.';
+    return;
+  }
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    notifBtn.disabled = true;
+    notifHint.textContent = 'This browser does not support notifications.';
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    notifBtn.disabled = true;
+    notifHint.textContent = 'Notifications are blocked. Allow them for this site in your browser or phone settings.';
+    return;
+  }
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  notifBtn.textContent = sub ? 'Turn off notifications' : 'Enable notifications';
+}
+
+notifBtn.addEventListener('click', async () => {
+  // ask for permission first thing, directly inside the tap (iOS requires this)
+  if (Notification.permission === 'default') {
+    const p = await Notification.requestPermission();
+    if (p !== 'granted') return refreshNotifButton();
+  }
+
+  const reg = await navigator.serviceWorker.ready;
+  const existing = await reg.pushManager.getSubscription();
+
+  if (existing) {
+    // turn OFF
+    await fetch('/push/unsubscribe', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({endpoint: existing.endpoint})
+    });
+    await existing.unsubscribe();
+  } else {
+    // turn ON
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    await fetch('/push/subscribe', {   // your existing route
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(sub)
+    });
+  }
+  refreshNotifButton();
+});
+
+refreshNotifButton();
